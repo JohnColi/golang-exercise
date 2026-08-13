@@ -68,11 +68,28 @@ for v := range ch {
 
 ### 2.3 WaitGroup
 - [ ] 為什麼需要 WaitGroup？它解決了什麼問題？
+
+ans:
+為了解決多個groutine，
 - [ ] `Add` / `Done` / `Wait` 分別在什麼時機呼叫？
+ans: 
+goroutine 前
+結束後 通常defer
+等全部goroutine
+
 - [ ] 如果忘記呼叫 `Done()` 會發生什麼事？
+ans: 
+永遠卡住
+``` golang
+fatal error: all goroutines are asleep - deadlock!
+```
 
 ### 2.4 Select
 - [ ] `select` 的用途是什麼？跟 `switch` 有何不同？
+
+ans:
+是專門為 channel 設計的控制流語法，讓你可以同時監聽多個 channel，哪個 channel 先準備好就執行哪個分支。
+
 - [ ] 如果同時有多個 channel 都準備好了，`select` 怎麼決定要走哪一個？
 - [ ] `select` 裡的 `default` 分支有什麼作用？
 

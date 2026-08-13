@@ -7,7 +7,7 @@ func main() {
 
 	// TODO: 完成各練習後，依序取消註解
 	runGoroutineDemo()
-	// runChannelDemo()
+	runChannelDemo()
 	// runWaitGroupDemo()
 	// runSelectDemo()
 	// runRaceDemo()

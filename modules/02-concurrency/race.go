@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"sync"
+)
+
 // 練習 2.5：Race / Mutex / Channel 修正
 //
 // 目標：
@@ -13,12 +18,29 @@ package main
 
 func runRaceDemo() {
 	// TODO: unsafeCount()   — 不加鎖，印出錯誤（或不穩定）的結果
+	unsafeCount()
+
 	// TODO: mutexCount()    — 用 Mutex 保護共享變數
+	mutexCount()
 	// TODO: channelCount()  — 用 channel 收集增量，避免多 goroutine 同時寫同一變數
+	channelCount()
 }
 
 func unsafeCount() {
 	// TODO: 啟動多個 goroutine，各自對同一個 int 做很多次 +1
+	wg := sync.WaitGroup{}
+
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+
+		go func(id int) {
+			defer wg.Done()
+			fmt.Printf("Worker %d 開始工作\n", id)
+			// 模擬做一些事...
+			fmt.Printf("Worker %d 完成\n", id)
+		}(i)
+	}
+	wg.Wait()
 	// TODO: 用 WaitGroup 等全部結束，印出最終 count（通常會小於預期）
 }
 
