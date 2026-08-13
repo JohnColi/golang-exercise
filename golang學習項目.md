@@ -34,13 +34,37 @@ Go 的招牌特色。建議照下面順序理解，一個觀念沒懂，後面�
 
 ### 2.1 Goroutine
 - [ ] Goroutine 是什麼？跟作業系統的 thread 有什麼差別？
+ans:
+thread 是 OS 的單位；goroutine 是 Go 自己排的「更輕的併發單位」。
+
 - [ ] 怎麼啟動一個 goroutine？它跟主程式的執行順序關係是什麼？
 - [ ] 為什麼主程式結束時，還沒跑完的 goroutine 會直接被砍掉？
 
 ### 2.2 Channel
 - [ ] Channel 是拿來做什麼的？跟共享變數的方式有什麼不同的思維（"share memory by communicating"）？
 - [ ] buffered channel 跟 unbuffered channel 差在哪？什麼時候會 block？
+
+ans:
+**Buffered vs unbuffered，什麼時候會 block？**
+| | Unbuffered `make(chan T)` | Buffered `make(chan T, n)` |
+|---|---|---|
+| 容量 | 0 | n |
+| 送（send） | 一定要有人立刻收，否則 block | buffer 未滿可直接送；滿了才 block |
+| 收（receive） | 一定要有人立刻送，否則 block | buffer 有資料可直接收；空了才 block |
+
 - [ ] 怎麼判斷一個 channel 已經被關閉（closed）？
+
+ans:
+``` golang
+v, ok := <-ch
+if !ok {
+    // channel 已關閉，而且裡面沒東西了
+}
+for v := range ch {
+    // 處理 v
+}
+// 走到這裡表示 ch 已關閉且資料收完
+```
 
 ### 2.3 WaitGroup
 - [ ] 為什麼需要 WaitGroup？它解決了什麼問題？
