@@ -43,4 +43,11 @@ func runChannelDemo() {
 		fmt.Println("v:", v)
 	}
 	fmt.Println("ch_buff is closed")
+
+	// v, ok := <-ch  練習
+	fmt.Println("[channel] v, ok := <-ch  練習")
+	ch_ok := make(chan int)
+	go sum(10, ch_ok)
+	value, isChokOK := <-ch_ok
+	fmt.Println("v:", value, "ok:", isChokOK)
 }
