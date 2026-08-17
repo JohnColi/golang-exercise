@@ -16,11 +16,22 @@ import (
 // 建議用 -race 跑一次，看工具能不能抓到 race：
 //
 //	go run -race ./modules/02-concurrency
+func runRaceDemo() {
+	fmt.Println("[Race] start")
+	// TODO: unsafeCount()   — 不加鎖，印出錯誤（或不穩定）的結果
+	// unsafeCount()
+	// TODO: channelCount()  — 用 channel 收集增量，避免多 goroutine 同時寫同一變數
+	channelCount()
+	fmt.Println("[Race] end")
+}
+
+// 要保護的資料
 type SafeCounter struct {
 	mu sync.Mutex
 	v  int
 }
 
+// #region 動物
 // 鴨子
 type Duck struct {
 	Name string
@@ -31,7 +42,6 @@ type Chicken struct {
 	Name string
 }
 
-// #region 餵食和清洗
 func goFeeding(name string, safeCount *SafeCounter, wg *sync.WaitGroup) {
 	defer wg.Done()
 	// TODO: 同上，但 +1 前後用 mutex.Lock() / Unlock()
@@ -51,16 +61,6 @@ func goWashing(name string, safeCount *SafeCounter, wg *sync.WaitGroup) {
 }
 
 // #endregion 餵食和清洗
-
-func runRaceDemo() {
-	fmt.Println("[Race] start")
-	// TODO: unsafeCount()   — 不加鎖，印出錯誤（或不穩定）的結果
-	unsafeCount()
-
-	// TODO: channelCount()  — 用 channel 收集增量，避免多 goroutine 同時寫同一變數
-	channelCount()
-	fmt.Println("[Race] end")
-}
 
 // 不加鎖，印出錯誤（或不穩定）的結果
 func unsafeCount() {
@@ -85,6 +85,36 @@ func unsafeCount() {
 }
 
 func channelCount() {
-	// TODO: 每個 worker 把「完成次數」或每次 +1 送進 channel
-	// TODO: 另開（或主程式）從 channel 收值做加總
+	// 每個 worker 把每次 +1 送進 channel；只有「接收端」改 total，避免多 goroutine 寫同一變數
+	ch := make(chan int)
+	var wg sync.WaitGroup
+	washCount := 100
+	feedCount := 100
+
+	for i := 0; i < washCount; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			ch <- 1 // washing 完成一次
+		}()
+	}
+	for i := 0; i < feedCount; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			ch <- 1 // feeding 完成一次
+		}()
+	}
+
+	// 所有 worker 送完後關閉 channel，讓 range 能結束
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+
+	total := 0
+	for v := range ch {
+		total += v // 單一 goroutine（main）負責加總
+	}
+	fmt.Println("[channel] final count:", total, "(expect", washCount+feedCount, ")")
 }
