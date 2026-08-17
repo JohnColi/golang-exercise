@@ -14,38 +14,74 @@ import (
 // 4. 比較兩種寫法的差異
 //
 // 建議用 -race 跑一次，看工具能不能抓到 race：
-//   go run -race ./modules/02-concurrency
+//
+//	go run -race ./modules/02-concurrency
+type SafeCounter struct {
+	mu sync.Mutex
+	v  int
+}
+
+// 鴨子
+type Duck struct {
+	Name string
+}
+
+// 雞
+type Chicken struct {
+	Name string
+}
+
+// #region 餵食和清洗
+func goFeeding(name string, safeCount *SafeCounter, wg *sync.WaitGroup) {
+	defer wg.Done()
+	// TODO: 同上，但 +1 前後用 mutex.Lock() / Unlock()
+	safeCount.mu.Lock()
+	safeCount.v++
+	defer safeCount.mu.Unlock()
+	fmt.Println("[Feeding] ", name, ": final count:", safeCount.v)
+}
+
+func goWashing(name string, safeCount *SafeCounter, wg *sync.WaitGroup) {
+	defer wg.Done()
+	// TODO: 同上，但 +1 前後用 mutex.Lock() / Unlock()
+	safeCount.mu.Lock()
+	safeCount.v++
+	defer safeCount.mu.Unlock()
+	fmt.Println("[Washing] ", name, ": final count:", safeCount.v)
+}
+
+// #endregion 餵食和清洗
 
 func runRaceDemo() {
+	fmt.Println("[Race] start")
 	// TODO: unsafeCount()   — 不加鎖，印出錯誤（或不穩定）的結果
 	unsafeCount()
 
-	// TODO: mutexCount()    — 用 Mutex 保護共享變數
-	mutexCount()
 	// TODO: channelCount()  — 用 channel 收集增量，避免多 goroutine 同時寫同一變數
 	channelCount()
+	fmt.Println("[Race] end")
 }
 
+// 不加鎖，印出錯誤（或不穩定）的結果
 func unsafeCount() {
+	safeCount := SafeCounter{}
 	// TODO: 啟動多個 goroutine，各自對同一個 int 做很多次 +1
+	// TODO: 用 WaitGroup 等全部結束，印出最終 count（通常會小於預期）
 	wg := sync.WaitGroup{}
+	washCount := 100
+	feedCount := 100
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < washCount; i++ {
 		wg.Add(1)
-
-		go func(id int) {
-			defer wg.Done()
-			fmt.Printf("Worker %d 開始工作\n", id)
-			// 模擬做一些事...
-			fmt.Printf("Worker %d 完成\n", id)
-		}(i)
+		go goWashing("chicken", &safeCount, &wg)
+	}
+	for i := 0; i < feedCount; i++ {
+		wg.Add(1)
+		go goFeeding("duck", &safeCount, &wg)
 	}
 	wg.Wait()
-	// TODO: 用 WaitGroup 等全部結束，印出最終 count（通常會小於預期）
-}
 
-func mutexCount() {
-	// TODO: 同上，但 +1 前後用 mutex.Lock() / Unlock()
+	fmt.Println("final count:", safeCount.v)
 }
 
 func channelCount() {
