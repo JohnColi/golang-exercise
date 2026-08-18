@@ -105,7 +105,7 @@ ans:
 ---
 
 ## Module 3：Web 框架與 RESTful API（Gin）
-
+Gin 是一個用 Go 語言寫的輕量級 Web 框架，主打「高效能」與「簡潔 API」，是目前 Go 生態圈中最受歡迎的 Web 框架之一
 - [ ] 什麼是 RESTful API？資源（resource）、HTTP method、狀態碼之間怎麼對應？
 - [ ] Gin 這個框架解決了 Go 內建 `net/http` 的哪些不方便之處？
 - [ ] 怎麼在 Gin 裡定義路由（route）、綁定 JSON 參數、回傳 JSON？
